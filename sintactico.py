@@ -171,9 +171,6 @@ def procesarSintaxis(entrada, simbolos):
       valores.append(valores_temp[::-1])
       simbolos_reducidos.append(simbolos_temp[::-1])
 
-
-
-
 def mostrarTabla(pila, entrada, salida):
   t = PrettyTable()
   t.field_names = ["PILA", "ENTRADA", "SALIDA"]
