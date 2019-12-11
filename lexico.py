@@ -42,7 +42,7 @@ tabla_de_simbolos = {
   36: "Sentencia",
   37: "Otro",
   38: "Bloque",
-  39: "ValoreRegresa",
+  39: "ValorRegresa",
   40: "Argumentos",
   41: "ListaArgumentos",
   42: "Termino",
@@ -168,6 +168,7 @@ def recorrerCadena(cadena):
       if caracter == " " and not re.search("^[+-]?[0-9]+\.[0-9]+$", substring[0:-1]):
         break
       if re.search("[+-]?[0-9]+\.[0-9]+", substring[0:-1]) and re.search("[^0-9]", caracter):
+        substring = substring[0:-1]
         simbolos.append(substring)
         tipo_de_simbolo.append(simbolos_lexicos["real"])
         isReal = False

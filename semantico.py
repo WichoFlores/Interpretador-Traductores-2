@@ -1,63 +1,91 @@
-definicion_de_reglas = {
-  1: ["Definiciones"],
-  2: [],
-  3: ["Definicion", "Definiciones"],
-  4: ["DefVar"],
-  5: ["DefFunc"],
-  6: ["tipo", "identificador" , "ListaVar", "punto y coma"],
-  7: [],
-  8: ["identificador", "ListaVar"],
-  9: ["tipo", "identificador", "parentesis apertura", "Parametros", "parentesis cierre", "BloqFunc"],
-  10: [],
-  11: ["tipo", "identificador", "ListaParam"],
-  12: [],
-  13: ["coma", "tipo", "identificador", "ListaParam"],
-  14: ["llave apertura", "DefLocales", "llave cierre"],
-  15: [],
-  16: ["DefLocal", "DefLocales"],
-  17: ["DefVar"],
-  18: ["Sentencia"],
-  19: [],
-  20: ["Sentencia", "Sentencias"],
-  21: ["identificador", "igual", "Expresion", "punto y coma"],
-  22: ["if", "parentesis apertura", "Expresion", "parentesis cierre", "SentenciaBloque", "Otro"],
-  23: ["while", "parentesis apertura", "Expresion", "parentesis cierre", "Bloque"],
-  24: ["return", "ValorRegresa", "punto y coma"],
-  25: ["LlamadaFunc"],
-  26: [],
-  27: ["else", "SentenciaBloque"],
-  28: ["llave apertura", "Sentencias", "llave cierre"],
-  29: [],
-  30: ["Expresion"],
-  31: [],
-  32: ["Expresion", "ListaArgumentos"],
-  33: [],
-  34: ["coma", "Expresion", "ListaArgumentos"],
-  35: ["llave aperturalamadaFunc"],
-  36: ["identificador"],
-  37: ["entero"],
-  38: ["real"],
-  39: ["cadena"],
-  40: ["identificador", "parentesis apertura", "Argumentos", "parentesis cierre"],
-  41: ["Sentencia"],
-  42: ["Bloque"],
-  43: ["parentesis apertura", "Expresion", "parentesis cierre"],
-  44: ["opSuma", "Expresion"],
-  45: ["opNot", "Expresion"],
-  46: ["Expresion", "opMul", "Expresion"],
-  47: ["Expresion", "opSuma", "Expresion"],
-  48: ["Expresion", "opRelac", "Expresion"],
-  49: ["Expresion", "opIgualdad", "Expresion"],
-  50: ["Expresion", "opAnd", "Expresion"],
-  51: ["Expresion", "opOr", "Expresion"],
-  52: ["Termino"],
-}
+def validarSemantica(valores_por_regla):
+  operaciones, asignaciones, definiciones = generarDiccionarios(valores_por_regla)
+  errores = []
+  print(operaciones, asignaciones, definiciones)
+  # Operaciones
+  for signo in operaciones:
+    tipo_variable_anterior = ""
+    for variable in operaciones[signo]:
+      try:
+        valor_de_variable = asignaciones[variable]
 
-def procesarSemantica(reglas_de_reduccion, simbolos_reducidos):
-  for simbolos, regla in zip(simbolos_reducidos, reglas_de_reduccion):
-    print("Regla: {} -> {}".format(regla, definicion_de_reglas[regla]))
-    print("Simbolos Obtenidos: ", simbolos)
-    if (simbolos == definicion_de_reglas[regla]):
-      print("Válido.")
+        try:
+          tipo_de_variable = definiciones[variable]
+          
+          if tipo_de_variable == "float":
+            if not isfloat(valor_de_variable):
+              errores.append("Variable ({}) es del tipo ({}) pero se le quiere asignar el valor ({}).".format(variable, tipo_de_variable, valor_de_variable))
+          elif tipo_de_variable == "int":
+            if not isint(valor_de_variable):
+              errores.append("Variable ({}) es del tipo ({}) pero se le quiere asignar el valor ({}).".format(variable, tipo_de_variable, valor_de_variable))
+
+        except KeyError:
+          errores.append("Variable ({}) no ha sido definida.".format(variable))
+         
+      except KeyError:
+        errores.append("Variable ({}) no tiene asignación.".format(variable))
+
+      try:
+        if tipo_variable_anterior == "":
+          tipo_variable_anterior = tipo_de_variable
+        else:
+          if tipo_variable_anterior != tipo_de_variable and signo in ["+", "-"]:
+            errores.append("Variable tipo {} no se puede sumar o restar con variable tipo {}".format(tipo_variable_anterior, tipo_de_variable))
+      except:
+        continue
+
+  if len(errores):
+    for error in errores:
+      print(error)
+  else:
+    print("No hay errores.")
+
+
+def generarDiccionarios(valores_por_regla):
+  variables_definidas = {}
+  asignaciones_a_variables = {}
+  operaciones_de_variables = {}
+  
+  for idx, valores in enumerate(valores_por_regla):
+    if idx == len(valores_por_regla)-1:
+      break
+
+    # Definiciones
+    if valores_por_regla[idx+1] == ["DefVar"] and valores[0] in ["int", "float", "cadena"]:
+      #                  NOMBRE DE VAR  TIPO DE VAR
+      variables_definidas[valores[1]] = valores[0]
+
+    # Asignaciones
+    if valores_por_regla[idx+1] == ["Sentencia"] and valores[1] == "=" and valores_por_regla[idx-1] == ["Termino"]:
+      #                         NOMBRE DE VAR        VALOR ASIGNADO
+      asignaciones_a_variables[valores[0]] = valores_por_regla[idx-2][0]
+    elif valores_por_regla[idx+1] == ["Sentencia"] and valores[1] == "=" and valores_por_regla[idx-1][1] in ["+", "-", "/", "*"]:
+      #                         NOMBRE DE VAR        VALOR ASIGNADO
+      asignaciones_a_variables[valores[0]] = [valores_por_regla[idx-3][0], valores_por_regla[idx-5][0]]
+
+    # Operaciones
+    try:
+      if valores[0] == "Expresion" and valores[1] in ["+", "-", "*", "/"] and valores[2] == "Expresion":
+        #                         SIGNO               VAR 1                       VAR 2
+        operaciones_de_variables[valores[1]] = [valores_por_regla[idx-2][0], valores_por_regla[idx-4][0]]
+    except:
+      continue
+    
+  return [variables_definidas, asignaciones_a_variables, operaciones_de_variables][::-1]
+
+def isint(x):
+    try:
+        a = float(x)
+        b = int(a)
+    except ValueError:
+        return False
     else:
-      print("Inválido.")
+        return a == b
+
+def isfloat(x):
+    try:
+        a = float(x)
+    except ValueError:
+        return False
+    else:
+        return True

@@ -124,35 +124,44 @@ data = data.to_numpy()
 
 reglas_de_reduccion = []
 simbolos_reducidos = []
-valores = []
+valores_por_regla = []
 
 def procesarSintaxis(entrada, simbolos):
   pila = [simbolos_lexicos["$"], 0]
   entrada.append(simbolos_lexicos["$"])
+  
+  valores = ["$", 0]
 
   while True:
     fila = pila[-1]
     columna = entrada[0]
     salida = int(data[fila][columna])
+
     mostrarTabla(pila, entrada, salida)
-    input('')
+    # input('')
     
     if salida == 0:
       if entrada[0] == simbolos_lexicos["$"]:
         print("Cadena válida.")
-        print("Reglas:", reglas_de_reduccion)
-        print("Simbolos por regla", simbolos_reducidos)
-        return reglas_de_reduccion, simbolos_reducidos, valores
+        # print("Reglas:", reglas_de_reduccion)
+        # print("Simbolos por regla", simbolos_reducidos)
+        return reglas_de_reduccion, simbolos_reducidos, valores_por_regla
       else:
         tipo_dato_erroneo = tabla_de_simbolos[entrada[0]]
-        inicio = len(simbolos)-len(entrada)
-        dato_erroneo = simbolos[inicio:][0]
-        print("Error después de {} -> {}".format(tipo_dato_erroneo, dato_erroneo))
+        inicio = len(simbolos)-len(entrada)-2
+        # dato_erroneo = simbolos[inicio:][0]
+        # print(simbolos)
+        # print("Error después de {} -> {}".format(tipo_dato_erroneo, dato_erroneo))
+        print("Error en cadena.")
         return
 
     if salida > 0:
       pila.append(entrada.pop(0))
       pila.append(salida)
+
+      # Simular comportamiento de pila para tener acceso a los simbolos
+      valores.append(simbolos.pop(0))
+      valores.append(0)
     else:
       salida = abs(salida)
 
@@ -162,13 +171,17 @@ def procesarSintaxis(entrada, simbolos):
       simbolos_temp = []
 
       entrada = [reducciones[salida]] + entrada
+      simbolos = [tabla_de_simbolos[reducciones[salida]]] + simbolos
+
       simbolosReduccion = simbolos_por_regla[salida]
       for _ in range(0, simbolosReduccion):
-        valores_temp.append(pila.pop())
+        pila.pop()
+        valores.pop()
         # Solo agregamos el segundo porque es el tipo de simbolo
         simbolos_temp.append(tabla_de_simbolos[pila.pop()])
+        valores_temp.append(valores.pop())
 
-      valores.append(valores_temp[::-1])
+      valores_por_regla.append(valores_temp[::-1])
       simbolos_reducidos.append(simbolos_temp[::-1])
 
 def mostrarTabla(pila, entrada, salida):
