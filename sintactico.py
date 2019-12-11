@@ -122,6 +122,10 @@ data = data.replace(['d', 'r'], ['', '-'], regex=True)
 data = data.fillna(0)
 data = data.to_numpy()
 
+reglas_de_reduccion = []
+simbolos_reducidos = []
+valores = []
+
 def procesarSintaxis(entrada, simbolos):
   pila = [simbolos_lexicos["$"], 0]
   entrada.append(simbolos_lexicos["$"])
@@ -136,25 +140,36 @@ def procesarSintaxis(entrada, simbolos):
     if salida == 0:
       if entrada[0] == simbolos_lexicos["$"]:
         print("Cadena válida.")
-        return
+        print("Reglas:", reglas_de_reduccion)
+        print("Simbolos por regla", simbolos_reducidos)
+        return reglas_de_reduccion, simbolos_reducidos, valores
       else:
         tipo_dato_erroneo = tabla_de_simbolos[entrada[0]]
         inicio = len(simbolos)-len(entrada)
         dato_erroneo = simbolos[inicio:][0]
-        print("Error en después de {} -> {}".format(tipo_dato_erroneo, dato_erroneo))
+        print("Error después de {} -> {}".format(tipo_dato_erroneo, dato_erroneo))
         return
-
 
     if salida > 0:
       pila.append(entrada.pop(0))
       pila.append(salida)
     else:
       salida = abs(salida)
+
+      reglas_de_reduccion.append(salida)
+
+      valores_temp = []
+      simbolos_temp = []
+
       entrada = [reducciones[salida]] + entrada
       simbolosReduccion = simbolos_por_regla[salida]
       for _ in range(0, simbolosReduccion):
-        pila.pop()
-        pila.pop()
+        valores_temp.append(pila.pop())
+        # Solo agregamos el segundo porque es el tipo de simbolo
+        simbolos_temp.append(tabla_de_simbolos[pila.pop()])
+
+      valores.append(valores_temp[::-1])
+      simbolos_reducidos.append(simbolos_temp[::-1])
 
 
 

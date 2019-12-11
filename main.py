@@ -1,5 +1,6 @@
 from lexico import recorrerCadena, construccionDeTabla
 from sintactico import procesarSintaxis
+from semantico import procesarSemantica
 
 entrada = ""
 with open('entrada.txt', 'r') as file:
@@ -10,8 +11,8 @@ simbolos, tipo_de_simbolo = recorrerCadena(entrada)
 construccionDeTabla(simbolos, tipo_de_simbolo)
 
 # SINTÁCTICO
-procesarSintaxis(entrada=tipo_de_simbolo, simbolos=simbolos)
-
+reglas_de_reduccion, simbolos_reducidos, valores = procesarSintaxis(entrada=tipo_de_simbolo, simbolos=simbolos)
+print(valores)
 # SEMÁNTICO
-
+procesarSemantica(reglas_de_reduccion[::-1], simbolos_reducidos[::-1])
 
